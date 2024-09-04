@@ -16,7 +16,7 @@ export async function generateMetadata({ params: { pokemonName } }: Params): Pro
     const pokemonData: Promise<Pokemon> = getPokemon(pokemonName)
     const pokemon: Pokemon = await pokemonData
 
-    if (!pokemon.name) {
+    if (!pokemon) {
         return {
             title: "Pokemon Not Found"
         }
@@ -32,25 +32,36 @@ export default async function PokemonDetails ({ params: { pokemonName } }: Param
   const pokemonData: Promise<Pokemon> = getPokemon(pokemonName)
 
   const pokemon = await pokemonData;
-  const primaryType: string = pokemon.types[0].type.name;
-  const backgroundColor = typeColors[primaryType] || "#333";
 
-  if (!pokemon.name) notFound()
+  if (!pokemon) notFound()
+
+  const primaryType: string = pokemon.types[0].type.name;
+  //const backgroundColor = typeColors[primaryType] || "#333";
+  const backgroundColor = "#333";
 
   return (
     <div className={styles['detail-container']}>
       <div className={styles['pokemon-detail-card']} style={{ backgroundColor }}>
-        <Image
-          src={pokemon.sprites.front_default}
-          alt={pokemon.name}
-          width={200}
-          height={200}
-          className={styles['pokemon-image']}
-        />
+        <div className={styles['pokemon-images']}>
+          <Image
+            src={pokemon.sprites.front_default}
+            alt={pokemon.name}
+            width={200}
+            height={200}
+            className={styles['pokemon-image']}
+          />
+          <Image
+            src={pokemon.sprites.front_shiny}
+            alt={`${pokemon.name} shiny`}
+            width={200}
+            height={200}
+            className={styles['pokemon-image']}
+          />
+        </div>
         <h2 className={styles['pokemon-name']}>{pokemon.name.charAt(0).toUpperCase() + pokemon.name.slice(1)}</h2>
         <div className={styles['pokemon-info']}>
           <p><strong>Name:</strong> {pokemon.name}</p>
-          <p><strong>Type:</strong> {pokemon.types.join(', ')}</p>
+          <p><strong>Type:</strong> {pokemon.types[0].type.name}</p>
           <p><strong>Height:</strong> {pokemon.height.toString()}</p>
           <p><strong>Abilities:</strong></p>
           <ul>
@@ -64,12 +75,6 @@ export default async function PokemonDetails ({ params: { pokemonName } }: Param
               <li key={stat.stat.name}>{stat.stat.name}: {stat.base_stat}</li>
             ))}
           </ul>
-          <p><strong>A few Moves:</strong></p>
-          <ul>
-            {pokemon.moves.slice(0, 3).map((move: any) => (
-              <li key={move.move.name}>{move.move.name}</li>
-            ))}
-          </ul>
         </div>
       </div>
     </div>
@@ -81,7 +86,7 @@ export async function generateStaticParams() {
 
   const pokemons = (await pokemonsData).results
 
-    return pokemons.map(pokemon => ({
-        pokemonName: pokemon.name
-    }))
+  return pokemons.map(pokemon => ({
+      pokemonName: pokemon.name
+  }))
 }

@@ -12,16 +12,24 @@ type Pokemon = {
     "location_area_encounters": string,
     "moves": Array,
     "species": object,
-    "sprites": object,
+    "sprites": {
+        'front_default': string,
+        'front_shiny': string
+    },
     "cries": object,
     "stats": Array,
     "types": Array,
     "past_types": Array
 }
 
+type PokemonToList = {
+    "url": string,
+    "name": string
+}
+
 type PokeResponse = {
     "count": Number,
     "next": string,
     "previous": string,
-    "results": Pokemon[]
+    "results": PokemonToList[]
 }

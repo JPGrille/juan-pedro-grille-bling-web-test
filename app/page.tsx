@@ -1,28 +1,72 @@
+"use client";
 import Image from "next/image";
 import Link from "next/link";
-import getAllPokemons from "./utils/getAllPokemons";
 import styles from './page.module.css'
+import { useCallback, useEffect, useRef, useState } from "react";
 
-export default async function Home() {
+export default function Home() {
+  const [pokemons, setPokemons] = useState<PokemonToList[]>([]);
+  const [nextUrl, setNextUrl] = useState<string | null>('https://pokeapi.co/api/v2/pokemon/');
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const IMG_URL = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/';
 
-  const pokemonsData: Promise<PokeResponse> = getAllPokemons();
+  const observerRef = useRef<HTMLDivElement | null>(null);
+  const fetchingRef = useRef<boolean>(false);
 
-  const pokemons = (await pokemonsData).results;
+  const fetchPokemons = useCallback(async () => {
+    if (!nextUrl || fetchingRef.current) return;
 
-  //const [search, setSearch] = useState<string>('');
-  //const [nextUrl, setNextUrl] = useState<string | null>('https://pokeapi.co/api/v2/pokemon/');
+    fetchingRef.current = true;
+    setIsLoading(true);
 
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    //setSearch(e.target.value);
-    console.log('Search has been clicked');
-  };
+    try {
+      const response = await fetch(nextUrl);
+      const data = await response.json();
 
-  const handleLoadMore = (e: any) => {
-    console.log('Load more has been clicked');
-  };
+      setPokemons((prevPokemons) => {
+        const newPokemons = data.results.filter(
+          (newPokemon: Pokemon) => !prevPokemons.some((pokemon) => pokemon.name === newPokemon.name)
+        );
+        return [...prevPokemons, ...newPokemons];
+      });
 
-  const content = (
-    <div className={styles.container}>
+      setNextUrl(data.next);
+    } catch (error) {
+      console.error("Error fetching Pokémon:", error);
+    } finally {
+      fetchingRef.current = false;
+      setIsLoading(false);
+    }
+  }, [nextUrl]);
+
+  const handleObserver = useCallback((entries: IntersectionObserverEntry[]) => {
+    const target = entries[0];
+    if (target.isIntersecting && !fetchingRef.current) {
+      fetchPokemons();
+    }
+  }, [fetchPokemons]);
+
+  useEffect(() => {
+    fetchPokemons();
+  }, []);
+
+  useEffect(() => {
+    const option = {
+      root: null,
+      rootMargin: "20px",
+      threshold: 1.0
+    };
+
+    const observer = new IntersectionObserver(handleObserver, option);
+    if (observerRef.current) observer.observe(observerRef.current);
+
+    return () => {
+      if (observerRef.current) observer.unobserve(observerRef.current);
+    };
+  }, [handleObserver]);
+
+  return (
+    <main className={styles.container}>
       <div className={styles['search-bar']}>
         <input
           type="text"
@@ -31,27 +75,21 @@ export default async function Home() {
         <button>Search</button>
       </div>
       <div className={styles['pokemon-grid']}>
-        {pokemons.map((pokemon) => (
-          <div key={pokemon.name} className={styles['pokemon-card']}>
+        {pokemons.map((pokemon, index) => (
+          <div key={index} className={styles['pokemon-card']}>
             <Image
-              src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemon.url.split('/')[6]}.png`}
+              src={`${IMG_URL}${pokemon.url.split('/')[6]}.png`}
               alt={pokemon.name}
-              width={500}
-              height={500}
+              width={100}
+              height={100}
             />
             <h3>{pokemon.name.charAt(0).toUpperCase() + pokemon.name.slice(1)}</h3>
-            <Link href={`/details/${pokemon.name}`}>
-              More Details →
-            </Link>
+            <Link href={`/details/${pokemon.name}`}>More Details →</Link>
           </div>
         ))}
       </div>
-    </div>
-  )
-
-  return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      {content}
+      {isLoading && <p>Loading more Pokémon...</p>}
+      <div ref={observerRef}></div>
     </main>
   );
 }

@@ -60,13 +60,18 @@
     font-weight: bold;
 }
 
-.load-more {
-    display: block;
-    margin: 20px auto;
-    padding: 10px 20px;
-    background-color: #6a0dad;
-    color: #fff;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
+.main {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.pokemon-card:hover {
+    transform: translateY(-5px);
+}
+
+.loading {
+    margin-top: 20px;
+    font-size: 18px;
 }
