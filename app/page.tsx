@@ -3,11 +3,14 @@ import Image from "next/image";
 import Link from "next/link";
 import styles from './page.module.css'
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter } from 'next/navigation'
 
 export default function Home() {
   const [pokemons, setPokemons] = useState<PokemonToList[]>([]);
   const [nextUrl, setNextUrl] = useState<string | null>('https://pokeapi.co/api/v2/pokemon/');
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [search, setSearch] = useState<string>('');
+  const router = useRouter();
   const IMG_URL = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/';
 
   const observerRef = useRef<HTMLDivElement | null>(null);
@@ -65,14 +68,26 @@ export default function Home() {
     };
   }, [handleObserver]);
 
+  function handleChange(event: { target: { name: any; value: any; }; }) {
+    const { value } = event.target;
+    setSearch(value);
+  }
+
+  function handleSearch(e: { preventDefault: () => void; }) {
+    e.preventDefault();
+    router.push(`/details/${search}`);
+  }
+
   return (
     <main className={styles.container}>
       <div className={styles['search-bar']}>
         <input
           type="text"
           placeholder="Search for a Pokémon..."
+          value={search}
+          onChange={handleChange}
         />
-        <button>Search</button>
+        <button onClick={handleSearch}>Search</button>
       </div>
       <div className={styles['pokemon-grid']}>
         {pokemons.map((pokemon, index) => (

@@ -1,4 +1,4 @@
-const typeColors = {
+const typeColors: Record<string, string> = {
     "grass": "#7AC74C",
     "fire": "#EE8130",
     "water": "#6390F0",

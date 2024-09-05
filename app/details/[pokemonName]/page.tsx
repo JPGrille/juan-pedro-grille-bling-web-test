@@ -5,6 +5,7 @@ import getAllPokemons from '@/app/utils/getAllPokemons';
 import Image from "next/image";
 import styles from './page.module.css';
 import typeColors from '@/app/utils/typeColors';
+import Link from 'next/link';
 
 type Params = {
     params: {
@@ -36,11 +37,13 @@ export default async function PokemonDetails ({ params: { pokemonName } }: Param
   if (!pokemon) notFound()
 
   const primaryType: string = pokemon.types[0].type.name;
-  //const backgroundColor = typeColors[primaryType] || "#333";
-  const backgroundColor = "#333";
+  const backgroundColor: string = typeColors[primaryType] || "#333";
 
   return (
     <div className={styles['detail-container']}>
+      <Link href="/" className={styles['back-button']} style={{ backgroundColor }}>
+        ← Back to Home
+      </Link>
       <div className={styles['pokemon-detail-card']} style={{ backgroundColor }}>
         <div className={styles['pokemon-images']}>
           <Image
